@@ -15,15 +15,14 @@ class CosineAnnealingWarmupRestarts(_LRScheduler):
     """
     
     def __init__(self,
-                 optimizer : torch.optim.Optimizer,
-                 first_cycle_steps : int,
-                 cycle_mult : float = 1.,
-                 max_lr : float = 0.1,
-                 min_lr : float = 0.001,
-                 warmup_steps : int = 0,
-                 gamma : float = 1.,
-                 last_epoch : int = -1
-        ):
+                 optimizer: torch.optim.Optimizer,
+                 first_cycle_steps: int,
+                 cycle_mult: float = 1.,
+                 max_lr: float = 0.1,
+                 min_lr: float = 0.001,
+                 warmup_steps: int = 0,
+                 gamma: float = 1.,
+                 last_epoch: int = -1):
         assert warmup_steps < first_cycle_steps
         
         self.first_cycle_steps = first_cycle_steps # first cycle step size
@@ -40,7 +39,7 @@ class CosineAnnealingWarmupRestarts(_LRScheduler):
         
         super(CosineAnnealingWarmupRestarts, self).__init__(optimizer, last_epoch)
         
-        # set learning rate min_lr
+        # set learning rate to min_lr
         self.init_lr()
     
     def init_lr(self):
@@ -53,12 +52,9 @@ class CosineAnnealingWarmupRestarts(_LRScheduler):
         if self.step_in_cycle == -1:
             return self.base_lrs
         elif self.step_in_cycle < self.warmup_steps:
-            return [(self.max_lr - base_lr)*self.step_in_cycle / self.warmup_steps + base_lr for base_lr in self.base_lrs]
+            return [(self.max_lr - base_lr) * self.step_in_cycle / self.warmup_steps + base_lr for base_lr in self.base_lrs]
         else:
-            return [base_lr + (self.max_lr - base_lr) \
-                    * (1 + math.cos(math.pi * (self.step_in_cycle-self.warmup_steps) \
-                                    / (self.cur_cycle_steps - self.warmup_steps))) / 2
-                    for base_lr in self.base_lrs]
+            return [base_lr + (self.max_lr - base_lr) * (1 + math.cos(math.pi * (self.step_in_cycle - self.warmup_steps) / (self.cur_cycle_steps - self.warmup_steps))) / 2 for base_lr in self.base_lrs]
 
     def step(self, epoch=None):
         if epoch is None:
@@ -86,3 +82,4 @@ class CosineAnnealingWarmupRestarts(_LRScheduler):
         self.last_epoch = math.floor(epoch)
         for param_group, lr in zip(self.optimizer.param_groups, self.get_lr()):
             param_group['lr'] = lr
+        self._last_lr = [group['lr'] for group in self.optimizer.param_groups]
